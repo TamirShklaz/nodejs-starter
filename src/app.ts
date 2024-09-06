@@ -1,21 +1,24 @@
-import bodyParser from "body-parser";
-import express, { Request, Response } from "express";
+import express from "express";
 import cors from "cors";
-import helloWorldRoutes from "./api/routes";
+import routes from "@/api/v1/routes";
 
 const app = express();
 
-app.use(bodyParser.json());
-app.use(
-  cors({
-    allowedHeaders: ["Content-Type", "Authorization"]
-  })
-);
-
-app.get("/healthcheck", async (req: Request, res: Response) => {
-  res.status(200).send("OK");
+app.use((req: express.Request, res: express.Response, next: express.NextFunction): void => {
+  if (req.originalUrl.indexOf("webhook")) {
+    // Skip json parsing for webhook
+    next();
+  } else {
+    express.json()(req, res, next);
+  }
 });
 
-app.use("/api/v1/", helloWorldRoutes);
+app.use(
+  cors({
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
+app.use("/api/v1/", routes);
 
 export default app;
